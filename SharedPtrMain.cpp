@@ -12,7 +12,7 @@
 namespace
 {
     template <typename DataT>
-    void* convertToVoid(DataT* data)
+    void* convertToVoidPtr(DataT* data)
     {
         if (!data)
         {
@@ -36,42 +36,42 @@ public:
     template <typename DataT>
     void addData(DataT* data)
     {
-        auto* voidData = convertToVoid(data);
+        auto* voidData = convertToVoidPtr(data);
 
         const auto findItr = m_managementTable.find(voidData);
-        if (findItr != m_managementTable.end())
+        if (findItr == m_managementTable.end())
         {
-            ++findItr->second;
+            m_managementTable.emplace(voidData, 1);
         }
         else
         {
-            m_managementTable.emplace(voidData, 1);
+            ++findItr->second;
         }
     }
 
     template <typename DataT>
     bool removeData(DataT* data)
     {
-        const auto findItr = m_managementTable.find(convertToVoid(data));
-        if (findItr != m_managementTable.end())
+        const auto findItr = m_managementTable.find(convertToVoidPtr(data));
+        if (findItr == m_managementTable.end())
         {
-            if (1 == findItr->second.load())
-            {
-                m_managementTable.erase(findItr);
-                return true;
-            }
+            throw std::logic_error{"SharedPtrDataManagementTable::removeData called with non-managed data"};
+        }
 
+        if (findItr->second.load() > 1)
+        {
             --findItr->second;
             return false;
         }
 
-        throw std::logic_error{"SharedPtrDataManagementTable::removeData called with non-managed data"};
+        m_managementTable.erase(findItr);
+        return true;
     }
 
     template <typename DataT>
     std::size_t getCount(DataT* data) const
     {
-        const auto findItr = m_managementTable.find(convertToVoid(data));
+        const auto findItr = m_managementTable.find(convertToVoidPtr(data));
         if (findItr == m_managementTable.cend())
         {
             return 0;
@@ -84,11 +84,7 @@ private:
     using ManagementTable = std::unordered_map<void*, std::atomic_size_t>;
     ManagementTable m_managementTable;
 
-    SharedPtrDataManagementTable()
-    : m_managementTable{}
-    {
-
-    }
+    SharedPtrDataManagementTable() = default;
 };
 
 
@@ -102,9 +98,9 @@ public:
     : m_data{data},
       m_managementTableRef{SharedPtrDataManagementTable::GetInstance()}
     {
-        if (data)
+        if (m_data)
         {
-            m_managementTableRef.addData(data);
+            m_managementTableRef.addData(m_data);
         }
     }
     
