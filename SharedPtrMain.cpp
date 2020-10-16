@@ -169,14 +169,28 @@ public:
         releaseData(false);
     }
 
-    DataT* operator->() const
+    DataT* operator->()
     {
-        if (!m_data)
-        {
-            throw std::logic_error{"SharedPtr::operator-> called with null managed data"};
-        }
+        throwIfInvalidAccess();
 
         return m_data;
+    }
+
+    const DataT* operator->() const
+    {
+        return const_cast<SharedPtr<DataT>&>(*this).operator->();
+    }
+
+    DataT& operator*()
+    {
+        throwIfInvalidAccess();
+
+        return *m_data;
+    }
+
+    const DataT& operator*() const
+    {
+        return *const_cast<SharedPtr<DataT>&>(*this);
     }
 
     operator bool() const
@@ -232,6 +246,14 @@ private:
         }
 
         m_data = nullptr;
+    }
+
+    void throwIfInvalidAccess() const
+    {
+        if (!m_data)
+        {
+            throw std::logic_error{"SharedPtr dereferenced with null managed data"};
+        }
     }
 };
 
