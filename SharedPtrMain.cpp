@@ -1,5 +1,5 @@
+#include <atomic>
 #include <cassert>
-#include <cstddef>
 #include <iostream>
 #include <stdexcept>
 #include <string>
@@ -51,7 +51,7 @@ public:
         const auto findItr = m_managementTable.find(voidData);
         if (findItr != m_managementTable.end())
         {
-            if (1 == findItr->second)
+            if (1 == findItr->second.load())
             {
                 m_managementTable.erase(findItr);
                 return true;
@@ -71,7 +71,7 @@ private:
 
     }
 
-    using ManagementTable = std::unordered_map<void*, std::size_t>;
+    using ManagementTable = std::unordered_map<void*, std::atomic_size_t>;
     ManagementTable m_managementTable;
 };
 
