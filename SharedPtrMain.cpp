@@ -382,7 +382,7 @@ int main()
             assert(anotherBaseSharedPtr);
             anotherBaseSharedPtr->showDescription();
 
-            // now destructor for #3 should pop (instance created at line #339)
+            // now destructor for #3 should pop
         }
 
         std::cout << std::endl;
@@ -409,7 +409,7 @@ int main()
             assert(anotherBaseSharedPtr);
             anotherBaseSharedPtr->showDescription();
 
-            // now destructor for #1 should pop (instance created at line #329)
+            // now destructor for #1 should pop
         }
 
         std::cout << std::endl;
