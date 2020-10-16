@@ -1,11 +1,27 @@
 #include <atomic>
 #include <cassert>
+#include <cstddef>
 #include <iostream>
 #include <stdexcept>
 #include <string>
 #include <type_traits>
 #include <unordered_map>
 #include <utility>
+
+
+namespace
+{
+    template <typename DataT>
+    void* convertToVoid(DataT* data)
+    {
+        if (!data)
+        {
+            throw std::logic_error{"SharedPtrDataManagementTable method called with null data"};
+        }
+
+        return static_cast<void*>(data);
+    }
+}
 
 
 class SharedPtrDataManagementTable
@@ -20,12 +36,7 @@ public:
     template <typename DataT>
     void addData(DataT* data)
     {
-        if (!data)
-        {
-            throw std::logic_error{"SharedPtrDataManagementTable::addData called with null data"};
-        }
-
-        auto* voidData = static_cast<void*>(data);
+        auto* voidData = convertToVoid(data);
 
         const auto findItr = m_managementTable.find(voidData);
         if (findItr != m_managementTable.end())
@@ -41,14 +52,7 @@ public:
     template <typename DataT>
     bool removeData(DataT* data)
     {
-        if (!data)
-        {
-            throw std::logic_error{"SharedPtrDataManagementTable::removeData called with null data"};
-        }
-
-        auto* voidData = static_cast<void*>(data);
-
-        const auto findItr = m_managementTable.find(voidData);
+        const auto findItr = m_managementTable.find(convertToVoid(data));
         if (findItr != m_managementTable.end())
         {
             if (1 == findItr->second.load())
@@ -64,15 +68,27 @@ public:
         throw std::logic_error{"SharedPtrDataManagementTable::removeData called with non-managed data"};
     }
 
+    template <typename DataT>
+    std::size_t getCount(DataT* data) const
+    {
+        const auto findItr = m_managementTable.find(convertToVoid(data));
+        if (findItr == m_managementTable.cend())
+        {
+            return 0;
+        }
+
+        return findItr->second.load();
+    }
+
 private:
+    using ManagementTable = std::unordered_map<void*, std::atomic_size_t>;
+    ManagementTable m_managementTable;
+
     SharedPtrDataManagementTable()
-        : m_managementTable{}
+    : m_managementTable{}
     {
 
     }
-
-    using ManagementTable = std::unordered_map<void*, std::atomic_size_t>;
-    ManagementTable m_managementTable;
 };
 
 
@@ -196,6 +212,16 @@ public:
     operator bool() const
     {
         return m_data;
+    }
+
+    std::size_t getUseCount() const
+    {
+        if (!m_data)
+        {
+            return 0;
+        }
+
+        return m_managementTableRef.getCount(m_data);
     }
 
     template<typename> friend class SharedPtr;
