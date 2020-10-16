@@ -326,18 +326,18 @@ private:
 int main()
 {
     {
-        auto baseSharedPtr = MakeSharedPtr<Base>("base type");
+        auto baseSharedPtr = MakeSharedPtr<Base>("base type, instance # should be 1");
         assert(baseSharedPtr);
         baseSharedPtr->showDescription();
         std::cout << std::endl;
 
-        auto derivedSharedPtr = MakeSharedPtr<Derived>("derived type");
+        auto derivedSharedPtr = MakeSharedPtr<Derived>("derived type, instance # should be 2");
         assert(derivedSharedPtr);
         derivedSharedPtr->showDescription();
         std::cout << std::endl;
 
         SharedPtr<Base> anotherBaseSharedPtr = MakeSharedPtr<Derived>(
-                                                               "derived type but stored as a base");
+                                       "derived type but stored as a base, instance # should be 3");
         assert(anotherBaseSharedPtr);
         anotherBaseSharedPtr->showDescription();
         std::cout << std::endl;
@@ -354,7 +354,7 @@ int main()
             assert(anotherBaseSharedPtr);
             anotherBaseSharedPtr->showDescription();
 
-            // now destructor for #3 should pop (instance created at line #301)
+            // now destructor for #3 should pop (instance created at line #339)
         }
 
         std::cout << std::endl;
@@ -381,7 +381,7 @@ int main()
             assert(anotherBaseSharedPtr);
             anotherBaseSharedPtr->showDescription();
 
-            // now destructor for #1 should pop (instance created at line #291)
+            // now destructor for #1 should pop (instance created at line #329)
         }
 
         std::cout << std::endl;
