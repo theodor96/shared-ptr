@@ -92,10 +92,16 @@ public:
         }
     }
     
-    explicit SharedPtr(std::nullptr_t)
-    : SharedPtr(nullptr)
+    SharedPtr()
+    : SharedPtr{static_cast<DataT*>(nullptr)}
     {
         
+    }
+
+    explicit SharedPtr(std::nullptr_t)
+    : SharedPtr{}
+    {
+
     }
 
     SharedPtr(const SharedPtr<DataT>& other)
