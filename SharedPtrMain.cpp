@@ -129,13 +129,13 @@ public:
         other.m_data = nullptr;
     }
 
-    template <typename DataU>
+    template <typename DataU, typename = std::enable_if_t<std::is_base_of_v<DataT, DataU> ||
+                                                          std::is_base_of_v<DataU, DataT>>>
     SharedPtr(DataU* data)
-    : SharedPtr{static_cast<DataT*>(data)}
+    : SharedPtr{(std::is_base_of_v<DataT, DataU>) ? static_cast<DataT*>(data) 
+                                                  : dynamic_cast<DataT*>(data)}
     {
-        static_assert(std::is_same_v<DataT, DataU> || std::is_base_of_v<DataT, DataU>,
-                      "SharedPtr may only be constructed with (shared) pointers "
-                      "derived from this one's DataT");
+
     }
 
     template <typename DataU>
