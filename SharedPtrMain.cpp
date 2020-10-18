@@ -231,7 +231,7 @@ private:
     {
         using DataU = typename std::remove_reference_t<std::remove_cv_t<SharedPtrT>>::Data;
 
-        static_assert(std::is_same_v<DataT, DataU> || std::is_base_of_v<DataT, DataU>,
+        static_assert(std::is_base_of_v<DataT, DataU>,
                       "SharedPtr may only be assigned to SharedPtr<derived from this one's DataT>");
 
         if constexpr (std::is_same_v<DataT, DataU>)
